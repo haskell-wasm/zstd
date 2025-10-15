@@ -207,7 +207,7 @@ if (ZSTD_BUILD_SHARED)
             OUTPUT_NAME zstd
             VERSION ${ZSTD_FULL_VERSION}
             SOVERSION ${zstd_VERSION_MAJOR})
-            
+
     if (ZSTD_FRAMEWORK)
         set_target_properties(
                 libzstd_shared
@@ -233,7 +233,7 @@ if (ZSTD_BUILD_STATIC)
     set_target_properties(
             libzstd_static
             PROPERTIES
-            POSITION_INDEPENDENT_CODE On
+            POSITION_INDEPENDENT_CODE OFF
             OUTPUT_NAME ${STATIC_LIBRARY_BASE_NAME})
 
     if (ZSTD_FRAMEWORK)
