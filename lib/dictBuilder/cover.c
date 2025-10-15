@@ -85,6 +85,9 @@ static const clock_t g_refreshRate = CLOCKS_PER_SEC * 15 / 100;
 static clock_t g_time = 0;
 #endif
 #undef  LOCALDISPLAYUPDATE
+#if defined(__wasi__)
+#define LOCALDISPLAYUPDATE(displayLevel, l, ...)
+#else
 #define LOCALDISPLAYUPDATE(displayLevel, l, ...)                               \
   if (displayLevel >= l) {                                                     \
     if ((clock() - g_time > g_refreshRate) || (displayLevel >= 4)) {           \
@@ -92,6 +95,7 @@ static clock_t g_time = 0;
       DISPLAY(__VA_ARGS__);                                                    \
     }                                                                          \
   }
+#endif
 #undef  DISPLAYUPDATE
 #define DISPLAYUPDATE(l, ...) LOCALDISPLAYUPDATE(g_displayLevel, l, __VA_ARGS__)
 

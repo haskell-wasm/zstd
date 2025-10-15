@@ -33,7 +33,9 @@
 #include <assert.h>
 #include <errno.h>      /* errno */
 #include <limits.h>     /* INT_MAX */
+#if !defined(__wasi__)
 #include <signal.h>
+#endif
 #include "timefn.h"     /* UTIL_getTime, UTIL_clockSpanMicro */
 
 #if defined (_MSC_VER)
@@ -131,6 +133,7 @@ char const* FIO_lzmaVersion(void)
 static const char* g_artefact = NULL;
 static void INThandler(int sig)
 {
+#if !defined(__wasi__)
     assert(sig==SIGINT); (void)sig;
 #if !defined(_MSC_VER)
     signal(sig, SIG_IGN);  /* this invocation generates a buggy warning in Visual Studio */
@@ -141,21 +144,26 @@ static void INThandler(int sig)
     }
     DISPLAY("\n");
     exit(2);
+#endif
 }
 static void addHandler(char const* dstFileName)
 {
+#if !defined(__wasi__)
     if (UTIL_isRegularFile(dstFileName)) {
         g_artefact = dstFileName;
         signal(SIGINT, INThandler);
     } else {
         g_artefact = NULL;
     }
+#endif
 }
 /* Idempotent */
 static void clearHandler(void)
 {
+#if !defined(__wasi__)
     if (g_artefact) signal(SIGINT, SIG_DFL);
     g_artefact = NULL;
+#endif
 }
 
 
@@ -1737,7 +1745,6 @@ FIO_compressFilename_internal(FIO_ctx_t* const fCtx,
                               int compressionLevel)
 {
     UTIL_time_t const timeStart = UTIL_getTime();
-    clock_t const cpuStart = clock();
     U64 readsize = 0;
     U64 compressedfilesize = 0;
     U64 const fileSize = UTIL_getFileSize(srcFileName);
@@ -1806,13 +1813,10 @@ FIO_compressFilename_internal(FIO_ctx_t* const fCtx,
     }
 
     /* Elapsed Time and CPU Load */
-    {   clock_t const cpuEnd = clock();
-        double const cpuLoad_s = (double)(cpuEnd - cpuStart) / CLOCKS_PER_SEC;
-        U64 const timeLength_ns = UTIL_clockSpanNano(timeStart);
+    {   U64 const timeLength_ns = UTIL_clockSpanNano(timeStart);
         double const timeLength_s = (double)timeLength_ns / 1000000000;
-        double const cpuLoad_pct = (cpuLoad_s / timeLength_s) * 100;
-        DISPLAYLEVEL(4, "%-20s : Completed in %.2f sec  (cpu load : %.0f%%)\n",
-                        srcFileName, timeLength_s, cpuLoad_pct);
+        DISPLAYLEVEL(4, "%-20s : Completed in %.2f sec\n",
+                        srcFileName, timeLength_s);
     }
     return 0;
 }

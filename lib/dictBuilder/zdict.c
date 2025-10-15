@@ -477,6 +477,9 @@ static size_t ZDICT_trainBuffer_legacy(dictItem* dictList, U32 dictListSize,
     clock_t const refreshRate = CLOCKS_PER_SEC * 3 / 10;
 
 #   undef  DISPLAYUPDATE
+#if defined(__wasi__)
+#define DISPLAYUPDATE(l, ...)
+#else
 #   define DISPLAYUPDATE(l, ...)                                   \
         do {                                                       \
             if (notificationLevel>=l) {                            \
@@ -487,6 +490,7 @@ static size_t ZDICT_trainBuffer_legacy(dictItem* dictList, U32 dictListSize,
                 if (notificationLevel>=4) fflush(stderr);          \
             }                                                      \
         } while (0)
+#endif
 
     /* init */
     DISPLAYLEVEL(2, "\r%70s\r", "");   /* clean display line */

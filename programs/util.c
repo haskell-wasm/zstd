@@ -115,7 +115,7 @@ UTIL_STATIC void* UTIL_realloc(void *ptr, size_t size)
 #endif
 
 #ifndef ZSTD_HAVE_FCHOWN
-#if PLATFORM_POSIX_VERSION >= 200809L
+#if PLATFORM_POSIX_VERSION >= 200809L && !defined(__wasi__)
 #define ZSTD_HAVE_FCHOWN
 #endif
 #endif
@@ -320,9 +320,11 @@ int UTIL_setFDStat(const int fd, const char *filename, const stat_t *statbuf)
         res += fchown(fd, -1, statbuf->st_gid);  /* Apply group ownership */
     } else
 #endif
+#if !defined(__wasi__)
     {
         res += chown(filename, -1, statbuf->st_gid);  /* Apply group ownership */
     }
+#endif
 #endif
 
     res += UTIL_fchmod(fd, filename, &curStatBuf, statbuf->st_mode & 0777);  /* Copy file permissions */
@@ -333,9 +335,11 @@ int UTIL_setFDStat(const int fd, const char *filename, const stat_t *statbuf)
         res += fchown(fd, statbuf->st_uid, -1);  /* Apply user ownership */
     } else
 #endif
+#if !defined(__wasi__)
     {
         res += chown(filename, statbuf->st_uid, -1);  /* Apply user ownership */
     }
+#endif
 #endif
 
     errno = 0;
